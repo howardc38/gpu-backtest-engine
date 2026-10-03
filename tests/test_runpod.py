@@ -268,7 +268,7 @@ def test_auth_headers_and_server_bodies_are_not_exposed(monkeypatch):
     assert "HTTP 403" in str(error.value)
 
 
-@pytest.mark.parametrize("ambiguous", ["timeout", "missing_id"])
+@pytest.mark.parametrize("ambiguous", ["timeout", "missing_id", "invalid_id"])
 def test_ambiguous_creation_recovers_by_unique_name_without_reposting(monkeypatch, ambiguous):
     calls = []
     client = runpod.RunPodClient("test-token")
@@ -278,6 +278,8 @@ def test_ambiguous_creation_recovers_by_unique_name_without_reposting(monkeypatc
         if method == "POST":
             if ambiguous == "timeout":
                 raise runpod.RunPodError("Connection failed")
+            if ambiguous == "invalid_id":
+                return {"id": "../invalid"}
             return {}
         return [{"id": "unrelated", "name": "other"}, {"id": "ownedpod", "name": "unique"}]
 

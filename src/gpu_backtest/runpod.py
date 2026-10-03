@@ -106,8 +106,13 @@ class RunPodClient:
     def create(self, body):
         try:
             result = self.request("POST", "/pods", body)
-            if not isinstance(result, dict) or not result.get("id"):
-                raise RunPodError("Creation response did not contain a pod ID")
+            if (
+                not isinstance(result, dict)
+                or not isinstance(result.get("id"), str)
+                or not result["id"].isascii()
+                or not result["id"].isalnum()
+            ):
+                raise RunPodError("Creation response did not contain a valid pod ID")
         except RunPodError as exc:
             if "HTTP 4" in str(exc):
                 raise
@@ -117,7 +122,12 @@ class RunPodClient:
                 matches = [p for p in pods if p.get("name") == body["name"]]
             except (RunPodError, TypeError):
                 matches = []
-            if len(matches) == 1 and matches[0].get("id"):
+            if (
+                len(matches) == 1
+                and isinstance(matches[0].get("id"), str)
+                and matches[0]["id"].isascii()
+                and matches[0]["id"].isalnum()
+            ):
                 return matches[0]
             raise RunPodError(
                 f"Creation outcome unknown; check RunPod for launch {body['name']}. "
