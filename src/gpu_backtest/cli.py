@@ -1,0 +1,114 @@
+"""Command-line entry point with explicit strategy selection and JSON configuration."""
+
+import argparse
+import json
+from pathlib import Path
+
+
+def _options(args):
+    config = {}
+    if args.config:
+        config_path = Path(args.config).resolve()
+        config = json.loads(config_path.read_text())
+        if not isinstance(config, dict):
+            raise ValueError("Config must be a JSON object")
+        if config.get("input"):
+            config["input"] = str(config_path.parent / config["input"])
+    strategy = args.strategy if args.strategy is not None else config.get("strategy")
+    source = args.input if args.input is not None else config.get("input")
+    if not strategy or not source:
+        raise ValueError("Specify strategy and input explicitly, either in config or CLI flags")
+    options = {}
+    for name, default in (
+        ("buy", 0.0015),
+        ("sell", 0.0015),
+        ("top_n", 100),
+        ("threads_per_block", 128),
+        ("expected_interval", None),
+    ):
+        value = getattr(args, name)
+        options[name] = config.get(name, default) if value is None else value
+    options.update(entry_dims=config.get("entry_dims"), exit_dims=config.get("exit_dims"))
+    return strategy, source, options, config
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(prog="gpu-backtest")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    for name in ("run", "pipeline"):
+        command = subparsers.add_parser(name)
+        command.add_argument("--config")
+        command.add_argument("--strategy", help="Builtin name or installed dotted module name")
+        command.add_argument("--input")
+        command.add_argument("--buy", type=float)
+        command.add_argument("--sell", type=float)
+        command.add_argument("--top-n", dest="top_n", type=int)
+        command.add_argument("--threads-per-block", dest="threads_per_block", type=int)
+        command.add_argument("--expected-interval", dest="expected_interval")
+        if name == "run":
+            command.add_argument("--out-prefix", required=True)
+        else:
+            command.add_argument("--output-dir", required=True)
+    split = subparsers.add_parser("split")
+    split.add_argument("--input", required=True)
+    split.add_argument("--start-date")
+    split.add_argument("--end-date")
+    split.add_argument("--num-splits", type=int, default=3)
+    common = subparsers.add_parser("common")
+    common.add_argument("--input", nargs="+", required=True)
+    common.add_argument("--keys", required=True)
+    common.add_argument("--labels")
+    common.add_argument("--output", required=True)
+    charts = subparsers.add_parser("charts")
+    charts.add_argument("--input", nargs="+", required=True)
+    charts.add_argument("--output", required=True)
+    args = parser.parse_args(argv)
+    try:
+        if args.command in ("run", "pipeline"):
+            strategy, source, options, config = _options(args)
+            if args.command == "run":
+                from .engine import run
+
+                run(strategy, source, args.out_prefix, **options)
+            else:
+                from .pipeline import run_pipeline
+
+                run_pipeline(
+                    strategy,
+                    source,
+                    args.output_dir,
+                    num_splits=config.get("num_splits", 3),
+                    start_date=config.get("start_date"),
+                    end_date=config.get("end_date"),
+                    ranges=config.get("ranges"),
+                    **options,
+                )
+        elif args.command == "split":
+            from .splits import _read_input, split_csv_by_date_range
+
+            data, column = _read_input(args.input, "Time")
+            split_csv_by_date_range(
+                args.input,
+                args.start_date or data[column].min().strftime("%d-%m-%Y"),
+                args.end_date or data[column].max().strftime("%d-%m-%Y"),
+                args.num_splits,
+                column,
+            )
+        elif args.command == "common":
+            from .common import process_data
+
+            process_data(
+                {
+                    "input_files": args.input,
+                    "key_columns": [p.strip() for p in args.keys.split(",") if p.strip()],
+                    "file_labels": args.labels.split(",") if args.labels else None,
+                    "output_file": args.output,
+                }
+            )
+        else:
+            from .charts import write_charts
+
+            print(write_charts(args.input, args.output))
+    except (ValueError, ImportError, OSError, KeyError, TypeError) as exc:
+        parser.exit(2, f"gpu-backtest: {exc}\n")
+    return 0
