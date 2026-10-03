@@ -1,10 +1,16 @@
 # GPU Backtest Engine
 
+## 10× faster on our public billion-pair benchmark
+
+**CPU: 7 min 44.60 s → RTX 4090: 44.95 s.** Measured on the same
+**1,000,000,000-pair RSI grid × 1,024 bars**, against an **eight-thread compiled
+Numba CPU baseline**. Exact measured speedup: **10.34×**; cloud setup is additional.
+
 **Backtest your own trading algorithms. Sweep a billion parameter combinations on a GPU.**
 
 - **Swap algorithms:** load a separately installed strategy module or object.
   Your strategy can stay in a private repo; the engine does not need to be edited.
-- **CPU minutes → GPU seconds:** the same **billion-pair RSI sweep** took
+- **10× faster — CPU minutes → GPU seconds:** the same **billion-pair RSI sweep** took
   **7 min 44.60 s on an eight-thread Numba CPU baseline → 44.95 s on RTX 4090**.
   That's **10.34× faster**, saving approximately **seven minutes per sweep**.
 - **Billion-scale sweep:** **1,000,000,000 unique pairs × 1,024 bars**, with
