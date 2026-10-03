@@ -23,7 +23,11 @@ jobs:
           cache: pip
       - run: python -m pip install -e '.[dev,viz]'
       - if: matrix.backend == 'numba-cuda'
-        run: python -m pip install 'numba-cuda>=0.30,<0.31'
+        # The device backend imports CUDA runtime metadata even for CPU-only tests.
+        # Only the runtime is needed here; simulation does not require a GPU/driver.
+        run: >-
+          python -m pip install 'numba-cuda>=0.30,<0.31'
+          'cuda-bindings>=12.9.1,<13' 'nvidia-cuda-runtime-cu12>=12.9,<13'
       - run: python -m pytest -q
       - run: ruff check .
       - run: ruff format --check .
