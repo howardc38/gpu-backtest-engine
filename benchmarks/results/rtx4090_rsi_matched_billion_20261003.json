@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-03T08:24:35.243273+00:00",
+  "strategy": "rsi_meanrev",
+  "synthetic_bars": 1024,
+  "data_sha256": "e57584c2def67be06de09b52ee72463d0626f20de30d2aace06f735d823909e2",
+  "cpu": {
+    "model": "AMD EPYC 7K62 48-Core Processor",
+    "numba_threads": 8,
+    "logical_cpus": 96,
+    "affinity_cpus": 96,
+    "cgroup_cpu_max": null
+  },
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "compute_capability": [
+      8,
+      9
+    ],
+    "driver_query": "NVIDIA GeForce RTX 4090, 580.159.04"
+  },
+  "python": "3.11.10",
+  "packages": {
+    "gpu-backtest-engine": "0.4.0",
+    "numba": "0.65.1",
+    "numba-cuda": "0.30.4",
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "llvmlite": "0.47.0",
+    "cuda-bindings": "12.9.9"
+  },
+  "simulation": false,
+  "comparison": {
+    "entry_dims": [
+      [
+        "p_e",
+        2,
+        65,
+        1,
+        false
+      ],
+      [
+        "buy_lvl",
+        20.0,
+        51.5,
+        0.5,
+        true
+      ]
+    ],
+    "exit_dims": [
+      [
+        "p_x",
+        2,
+        65,
+        1,
+        false
+      ],
+      [
+        "sell_lvl",
+        49.0,
+        80.5,
+        0.5,
+        true
+      ]
+    ],
+    "entry_count": 4096,
+    "exit_count": 4096,
+    "unique_combinations": 16777216,
+    "strategy_evaluations": 33554432,
+    "cpu_seconds": [
+      8.269491276703775,
+      8.466884214896709,
+      8.286056425888091
+    ],
+    "gpu_seconds": [
+      1.7380281616933644,
+      1.7164682219736278,
+      1.7165429638698697
+    ],
+    "cpu_median_seconds": 8.286056425888091,
+    "gpu_median_seconds": 1.7165429638698697,
+    "speedup": 4.827176831745327,
+    "cpu_compile_and_warmup_seconds": 11.131325269117951,
+    "gpu_compile_and_warmup_seconds": 3.291700274217874,
+    "max_absolute_differences": {
+      "entry_sum": 0.0,
+      "entry_sumsq": 0.0,
+      "exit_sum": 0.0,
+      "exit_sumsq": 0.0
+    }
+  },
+  "timing_scope": "Comparison: warmed two-pass reductions only. Shared input/table preparation, GPU transfers, compilation, result copying, statistics and CSV writing are excluded. CPU output allocation is included.",
+  "billion": {
+    "entry_dims": [
+      [
+        "p_e",
+        2,
+        401,
+        1,
+        false
+      ],
+      [
+        "buy_lvl",
+        10,
+        59,
+        1,
+        false
+      ]
+    ],
+    "exit_dims": [
+      [
+        "p_x",
+        2,
+        1001,
+        1,
+        false
+      ],
+      [
+        "sell_lvl",
+        50,
+        99,
+        1,
+        false
+      ]
+    ],
+    "entry_count": 20000,
+    "exit_count": 50000,
+    "unique_combinations": 1000000000,
+    "strategy_evaluations": 2000000000,
+    "engine_end_to_end_seconds": 44.95217377599329,
+    "reduction_array_bytes": 1120000,
+    "hypothetical_float32_matrix_bytes": 4000000000,
+    "nonzero_entry_groups": 3913,
+    "timing_scope": "Normal engine run including CSV validation, indicator tables, allocation/transfers, kernel construction/JIT, two GPU passes, copies, statistics and top CSV/manifest output. Excludes pod provisioning and dependency installation.",
+    "cpu_engine_end_to_end_seconds": 464.6027262918651,
+    "end_to_end_speedup": 10.335489638545273,
+    "elapsed_seconds_saved": 419.6505525158718,
+    "cpu_gpu_max_absolute_differences": {
+      "entry_sum": 3.725290298461914e-09,
+      "entry_sumsq": 0.0,
+      "exit_sum": 3.725290298461914e-09,
+      "exit_sumsq": 0.0
+    },
+    "cpu_timing_scope": "Compiled CPU reference through CSV validation, indicator preparation, both passes, allocations, checks, statistics and CSV/manifest output. Reuses the reducer already compiled for the smaller comparison. No CUDA simulation. One full measured run, not an extrapolation."
+  }
+}

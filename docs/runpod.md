@@ -65,8 +65,9 @@ gpu-backtest runpod --mode benchmark --ssh-key ~/.ssh/runpod_ed25519 \
 
 This mode needs no config/market file: it generates public synthetic data, requests
 at least eight vCPUs, measures an eight-thread compiled CPU baseline and the GPU,
-then runs one billion unique RSI parameter pairs. It uses one paid GPU pod and
-the normal cleanup behavior. Timing can vary on another host.
+then runs the entire billion-pair RSI grid on **both** CPU and GPU. Allow several
+minutes for the CPU measurement. It uses one paid GPU pod and the normal cleanup
+behavior. Timing can vary on another host.
 
 ## Execution and output
 

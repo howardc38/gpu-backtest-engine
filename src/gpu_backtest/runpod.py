@@ -418,9 +418,7 @@ env/bin/python -m gpu_backtest gpu-check --output output/gpu_check.json
     elif mode == "pipeline":
         script += "env/bin/python -m gpu_backtest pipeline --config job.json --output-dir output/pipeline\n"
     elif mode == "benchmark":
-        script += (
-            "env/bin/python -m gpu_backtest benchmark --output output/benchmark.json --billion\n"
-        )
+        script += "env/bin/python -m gpu_backtest benchmark --output output/benchmark.json --billion --billion-cpu\n"
     if charts and mode in ("run", "pipeline"):
         folder = "output/pipeline" if mode == "pipeline" else "output"
         script += "env/bin/python -m pip install 'altair==6.3.0'\n"

@@ -190,7 +190,7 @@ def test_benchmark_bundle_needs_no_config_and_runs_billion_profile(tmp_path):
     assert "engine/gpu_backtest/benchmark.py" in {f["file"] for f in files}
     with tarfile.open(archive) as bundle:
         command = bundle.extractfile("job.sh").read().decode()
-        assert "benchmark --output output/benchmark.json --billion" in command
+        assert "benchmark --output output/benchmark.json --billion --billion-cpu" in command
         assert "job.json" not in bundle.getnames()
 
 

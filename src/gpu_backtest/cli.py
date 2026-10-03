@@ -70,6 +70,9 @@ def main(argv=None):
     benchmark.add_argument("--cpu-threads", type=int, default=8)
     benchmark.add_argument("--repeats", type=int, default=3)
     benchmark.add_argument("--billion", action="store_true")
+    benchmark.add_argument(
+        "--billion-cpu", action="store_true", help="Measure the entire billion grid on CPU as well"
+    )
     runpod = subparsers.add_parser(
         "runpod", help="Lease one GPU, run a selected job, download, clean up"
     )
@@ -150,6 +153,7 @@ def main(argv=None):
                 cpu_threads=args.cpu_threads,
                 repeats=args.repeats,
                 billion=args.billion,
+                billion_cpu=args.billion_cpu,
             )
         else:
             from .runpod import launch, terminate_on_signal

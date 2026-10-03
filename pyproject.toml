@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gpu-backtest-engine"
-version = "0.3.0"
+version = "0.4.0"
 description = "Pluggable GPU parameter sweeps with deterministic entry/exit effect-size analysis"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"

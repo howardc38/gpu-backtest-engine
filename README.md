@@ -4,15 +4,16 @@
 
 - **Swap algorithms:** load a separately installed strategy module or object.
   Your strategy can stay in a private repo; the engine does not need to be edited.
-- **Measured GPU acceleration:** **3.88× faster** than an **eight-thread Numba CPU
-  baseline** on the published RSI comparison: 16,777,216 pairs × 1,024 bars.
-- **Billion-scale sweep:** **1,000,000,000 unique pairs × 1,024 bars in 43.34 seconds**
-  on one RTX 4090, using the normal engine API including statistics and CSV output.
+- **CPU minutes → GPU seconds:** the same **billion-pair RSI sweep** took
+  **7 min 44.60 s on an eight-thread Numba CPU baseline → 44.95 s on RTX 4090**.
+  That's **10.34× faster**, saving approximately **seven minutes per sweep**.
+- **Billion-scale sweep:** **1,000,000,000 unique pairs × 1,024 bars**, with
+  both sides measured through statistics and CSV/manifest output.
 - **No GPU in your laptop:** use the RunPod launcher to rent, run, download, and clean up.
 
-The CPU/GPU comparison measures warmed reductions; the billion-pair figure is
-a separate end-to-end GPU measurement. See [the benchmark and raw data](docs/benchmarks.md)
-for hardware, grids, timing scope, and reproduction. Results depend on workload.
+This is a measured full-grid comparison, not an extrapolation from a tiny case.
+See [the benchmark and raw data](docs/benchmarks.md) for hardware, timing scope,
+and reproduction. Results depend on workload; cloud setup time is additional.
 
 The engine provides deterministic reductions and separate entry/exit effect-size
 rankings without storing a full pairwise return matrix. This distribution includes
@@ -21,12 +22,21 @@ must follow [the Numba device-function contract](docs/strategy-contract.md).
 
 ## Published performance
 
-| Public RSI workload | Eight-thread CPU | RTX 4090 | Measurement |
+| Public RSI workload | Compiled CPU, eight threads | RTX 4090 | Time saved |
 |---|---|---|---|
-| 16,777,216 pairs × 1,024 bars | 6.417 s | 1.654 s | Warmed two-pass reductions; GPU 3.88× faster |
-| 1,000,000,000 pairs × 1,024 bars | Not run | 43.341 s | Normal engine API through top CSV/manifest output |
+| **1,000,000,000 pairs × 1,024 bars** | **7 min 44.60 s** | **44.95 s** | **6 min 59.65 s per sweep; 10.34× faster** |
 
-The CPU is an AMD EPYC 75F3 host running a parallel, compiled Numba baseline.
+The CPU is an AMD EPYC 7K62 host running a parallel, compiled Numba baseline.
+Both measurements use the same data, grid, fees, and two-pass algorithm, through
+ranked CSV/manifest output. The CPU reducer and CUDA context were already warmed;
+GPU kernel construction/JIT is included. Each full-grid timing is one measured run.
+These are engine-job times, excluding pod provisioning and installation.
+
+**When GPU is useful:** repeated large parameter searches, where saving minutes
+on every sweep adds up. If your job already finishes in a few CPU seconds,
+renting/setup overhead may outweigh GPU savings. The smaller warmed-kernel timing
+tests remain in the detailed benchmark, rather than being the main use-case claim.
+
 The billion grid uses 20,000 entry sets × 50,000 exit sets. Its grouped arrays
 occupy 1.12 MB, compared with 4 GB for a full float32 return matrix; this excludes
 input/indicator tables and runtime overhead. Pair counts are parameter combinations,

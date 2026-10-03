@@ -48,6 +48,8 @@ The [public performance benchmark](benchmarks.md) separately measures warmed
 compiled CPU/GPU reductions and a normal billion-pair engine run. Its CPU baseline
 is checked against the Python reference, including float32 sums of squares;
 default tests verify the billion grid size without executing that grid.
+`--billion-cpu` additionally runs the full billion-pair CPU job through output and
+checks all four aggregate arrays against the GPU run; it never substitutes an estimate.
 
 ## Distribution contents
 

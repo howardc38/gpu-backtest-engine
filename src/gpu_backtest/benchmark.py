@@ -18,6 +18,7 @@ from numba import config, cuda
 
 from .benchmark_cpu import build_cpu_reducer
 from .engine import (
+    _write_top_csv,
     build_kernels,
     dim_arrays,
     prepare_tables,
@@ -141,7 +142,36 @@ def _cpu_info(threads):
     }
 
 
-def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False):
+def run_cpu_baseline(source, prefix, entry_dims, exit_dims, reducer=None):
+    """CSV through ranked output using the compiled CPU two-pass reference."""
+    data = validate_market_data(source, expected_interval="1D")
+    arrays = [
+        data[c].to_numpy(dtype=np.float32) for c in ("Close", "Open", "High", "Low", "Volume")
+    ]
+    args = cpu_args(rsi_meanrev, arrays, entry_dims, exit_dims)
+    reducer = reducer or build_cpu_reducer(rsi_meanrev)
+    results = reducer(*args)
+    checks = validate_reduction_outputs(*results)
+    if prefix:
+        _write_top_csv(
+            str(prefix),
+            "rsi_meanrev",
+            str(source),
+            entry_dims,
+            exit_dims,
+            *results,
+            100,
+            checks,
+            False,
+        )
+        manifest = Path(f"{prefix}_top_manifest.json")
+        content = json.loads(manifest.read_text())
+        content["engine"] = "gpu_backtest.benchmark_cpu"
+        manifest.write_text(json.dumps(content, indent=2) + "\n")
+    return dict(zip(RESULT_KEYS, results))
+
+
+def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False, billion_cpu=False):
     if config.ENABLE_CUDASIM:
         raise ValueError("Performance benchmarking requires real CUDA, not CUDASIM")
     if not cuda.is_available():
@@ -150,6 +180,8 @@ def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False):
         raise ValueError("Require positive repeats and at least two bars")
     if not isinstance(cpu_threads, int) or not 1 <= cpu_threads <= numba.config.NUMBA_NUM_THREADS:
         raise ValueError("CPU thread count exceeds the available Numba thread pool")
+    if billion_cpu and not billion:
+        raise ValueError("--billion-cpu requires --billion")
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
     source = generate_csv(output.parent / "benchmark_synthetic.csv", bars)
@@ -276,6 +308,32 @@ def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False):
             }
             output.write_text(json.dumps(report, indent=2) + "\n")
             print(f"Billion-pair normal engine run completed in {elapsed:.3f}s.", flush=True)
+            if billion_cpu:
+                print(
+                    "Running the complete SAME billion-pair grid on the compiled CPU baseline...",
+                    flush=True,
+                )
+                started = time.perf_counter()
+                cpu_large = run_cpu_baseline(
+                    source, output.parent / "cpu_billion", e_dims, x_dims, reducer
+                )
+                cpu_elapsed = time.perf_counter() - started
+                differences = {}
+                for key in RESULT_KEYS:
+                    np.testing.assert_allclose(cpu_large[key], large[key], rtol=1e-6, atol=1e-3)
+                    differences[key] = float(np.max(np.abs(cpu_large[key] - large[key])))
+                report["billion"].update(
+                    cpu_engine_end_to_end_seconds=cpu_elapsed,
+                    end_to_end_speedup=cpu_elapsed / elapsed,
+                    elapsed_seconds_saved=cpu_elapsed - elapsed,
+                    cpu_gpu_max_absolute_differences=differences,
+                    cpu_timing_scope="Compiled CPU reference through CSV validation, indicator preparation, both passes, allocations, checks, statistics and CSV/manifest output. Reuses the reducer already compiled for the smaller comparison. No CUDA simulation. One full measured run, not an extrapolation.",
+                )
+                output.write_text(json.dumps(report, indent=2) + "\n")
+                print(
+                    f"Full billion grid: CPU {cpu_elapsed:.3f}s / GPU {elapsed:.3f}s = {cpu_elapsed / elapsed:.2f}x; {cpu_elapsed - elapsed:.3f}s saved.",
+                    flush=True,
+                )
         return report
     finally:
         numba.set_num_threads(original_threads)

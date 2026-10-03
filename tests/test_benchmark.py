@@ -71,3 +71,30 @@ def test_generated_data_reproduces_public_example(tmp_path):
     generated = generate_csv(tmp_path / "bars.csv", 128)
     original = Path(__file__).resolve().parents[1] / "examples/synthetic.csv"
     assert generated.read_bytes() == original.read_bytes()
+
+
+def test_cpu_baseline_writes_complete_ranked_artifacts(tmp_path):
+    import json
+
+    source = generate_csv(tmp_path / "bars.csv", 32)
+    prefix = tmp_path / "cpu"
+    entry, exit_ = rsi_meanrev.ENTRY_DIMS, rsi_meanrev.EXIT_DIMS
+    old = numba.get_num_threads()
+    numba.set_num_threads(min(2, numba.config.NUMBA_NUM_THREADS))
+    try:
+        result = benchmark.run_cpu_baseline(source, prefix, entry, exit_)
+    finally:
+        numba.set_num_threads(old)
+    assert set(result) == set(benchmark.RESULT_KEYS)
+    manifest = json.loads((tmp_path / "cpu_top_manifest.json").read_text())
+    assert manifest["engine"] == "gpu_backtest.benchmark_cpu"
+    assert manifest["pair_count"] == 16
+    assert (tmp_path / "cpu_top_entry.csv").is_file()
+    assert (tmp_path / "cpu_top_exit.csv").is_file()
+
+
+def test_full_billion_cpu_flag_requires_billion_profile(monkeypatch, tmp_path):
+    monkeypatch.setattr(benchmark, "config", SimpleNamespace(ENABLE_CUDASIM=False))
+    monkeypatch.setattr(benchmark, "cuda", SimpleNamespace(is_available=lambda: True))
+    with pytest.raises(ValueError, match="requires --billion"):
+        benchmark.benchmark(tmp_path / "report.json", cpu_threads=1, billion_cpu=True)

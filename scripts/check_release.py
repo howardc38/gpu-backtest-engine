@@ -20,6 +20,7 @@ ALLOWED = {
     "docs/runpod-validation.md",
     "docs/benchmarks.md",
     "benchmarks/results/rtx4090_rsi_20261003.json",
+    "benchmarks/results/rtx4090_rsi_matched_billion_20261003.json",
     "examples/generate_data.py",
     "examples/rsi.json",
     "examples/synthetic.csv",

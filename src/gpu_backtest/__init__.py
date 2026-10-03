@@ -1,6 +1,6 @@
 """Pluggable GPU parameter sweeps and grouped-return analysis."""
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 
 def run(*args, **kwargs):
