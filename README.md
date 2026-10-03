@@ -1,11 +1,37 @@
 # GPU Backtest Engine
 
-A Python engine for GPU parameter sweeps, with interchangeable strategy plugins,
-deterministic reductions, and separate entry/exit effect-size rankings.
+**Backtest your own trading algorithms. Sweep a billion parameter combinations on a GPU.**
 
-The distribution includes one educational RSI strategy and generated synthetic
-OHLCV data. Strategies can live in a separately installed package, including a
-private repository; no changes to the engine package are needed.
+- **Swap algorithms:** load a separately installed strategy module or object.
+  Your strategy can stay in a private repo; the engine does not need to be edited.
+- **Measured GPU acceleration:** **3.88× faster** than an **eight-thread Numba CPU
+  baseline** on the published RSI comparison: 16,777,216 pairs × 1,024 bars.
+- **Billion-scale sweep:** **1,000,000,000 unique pairs × 1,024 bars in 43.34 seconds**
+  on one RTX 4090, using the normal engine API including statistics and CSV output.
+- **No GPU in your laptop:** use the RunPod launcher to rent, run, download, and clean up.
+
+The CPU/GPU comparison measures warmed reductions; the billion-pair figure is
+a separate end-to-end GPU measurement. See [the benchmark and raw data](docs/benchmarks.md)
+for hardware, grids, timing scope, and reproduction. Results depend on workload.
+
+The engine provides deterministic reductions and separate entry/exit effect-size
+rankings without storing a full pairwise return matrix. This distribution includes
+one educational RSI strategy and generated synthetic OHLCV data. Custom plugins
+must follow [the Numba device-function contract](docs/strategy-contract.md).
+
+## Published performance
+
+| Public RSI workload | Eight-thread CPU | RTX 4090 | Measurement |
+|---|---|---|---|
+| 16,777,216 pairs × 1,024 bars | 6.417 s | 1.654 s | Warmed two-pass reductions; GPU 3.88× faster |
+| 1,000,000,000 pairs × 1,024 bars | Not run | 43.341 s | Normal engine API through top CSV/manifest output |
+
+The CPU is an AMD EPYC 75F3 host running a parallel, compiled Numba baseline.
+The billion grid uses 20,000 entry sets × 50,000 exit sets. Its grouped arrays
+occupy 1.12 MB, compared with 4 GB for a full float32 return matrix; this excludes
+input/indicator tables and runtime overhead. Pair counts are parameter combinations,
+not trades. These measurements use public code and synthetic data, with no private
+algorithm or market dataset.
 
 ## Quickstart without a GPU
 
@@ -162,8 +188,8 @@ NUMBA_ENABLE_CUDASIM=0 python -m pytest -m gpu -v
 
 See [testing details](docs/testing.md) and the [RunPod validation record](docs/runpod-validation.md).
 Small numeric checks and the public RSI pipeline have passed on a real RTX 4090.
-Large-grid performance, other hardware/backend versions, and custom strategies
-still require their own validation.
+The [public benchmark](docs/benchmarks.md) also completed a billion-pair RSI sweep.
+Other hardware/backend versions and custom strategies require their own validation.
 
 ## License
 

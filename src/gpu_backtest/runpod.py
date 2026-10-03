@@ -28,6 +28,8 @@ DEFAULT_IMAGE = "runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04"
 ENGINE_FILES = (
     "__init__.py",
     "__main__.py",
+    "benchmark.py",
+    "benchmark_cpu.py",
     "charts.py",
     "cli.py",
     "common.py",
@@ -38,6 +40,7 @@ ENGINE_FILES = (
     "splits.py",
     "statistics.py",
     "strategy.py",
+    "synthetic.py",
     "tables.py",
     "strategies/__init__.py",
     "strategies/rsi_meanrev.py",
@@ -296,10 +299,10 @@ def _record_cleanup_state(path, **fields):
 
 
 def build_bundle(archive, *, mode, config_path=None, plugin_dir=None, charts=False):
-    if mode not in ("run", "pipeline", "check"):
-        raise ValueError("RunPod mode must be run, pipeline, or check")
+    if mode not in ("run", "pipeline", "check", "benchmark"):
+        raise ValueError("RunPod mode must be run, pipeline, check, or benchmark")
     config = {}
-    if mode != "check":
+    if mode in ("run", "pipeline"):
         if not config_path:
             raise ValueError("RunPod run/pipeline requires --config")
         config_path = Path(config_path).resolve()
@@ -346,7 +349,7 @@ def build_bundle(archive, *, mode, config_path=None, plugin_dir=None, charts=Fal
             if str(entry).endswith("/licenses/LICENSE"):
                 shutil.copyfile(distribution.locate_file(entry), engine / "LICENSE")
                 break
-        if mode != "check":
+        if mode in ("run", "pipeline"):
             (staging / "input").mkdir()
             shutil.copyfile(source, staging / "input/market.csv")
             config["input"] = "input/market.csv"
@@ -368,7 +371,7 @@ def build_bundle(archive, *, mode, config_path=None, plugin_dir=None, charts=Fal
                 copied += 1
             if not copied:
                 raise ValueError("Plugin directory contains no Python files")
-        if mode != "check" and config["strategy"] not in (
+        if mode in ("run", "pipeline") and config["strategy"] not in (
             "rsi_meanrev",
             "gpu_backtest.strategies.rsi_meanrev",
         ):
@@ -414,7 +417,11 @@ env/bin/python -m gpu_backtest gpu-check --output output/gpu_check.json
         )
     elif mode == "pipeline":
         script += "env/bin/python -m gpu_backtest pipeline --config job.json --output-dir output/pipeline\n"
-    if charts and mode != "check":
+    elif mode == "benchmark":
+        script += (
+            "env/bin/python -m gpu_backtest benchmark --output output/benchmark.json --billion\n"
+        )
+    if charts and mode in ("run", "pipeline"):
         folder = "output/pipeline" if mode == "pipeline" else "output"
         script += "env/bin/python -m pip install 'altair==6.3.0'\n"
         script += f"env/bin/python -m gpu_backtest charts --input {folder}/*_top_entry.csv {folder}/*_top_exit.csv --output output/charts.html\n"
@@ -526,6 +533,8 @@ def launch(
         "ports": ["22/tcp"],
         "supportPublicIp": True,
     }
+    if mode == "benchmark":
+        body["minVCPUPerGPU"] = 8
     public_key = Path(str(key) + ".pub")
     if public_key.is_file():
         body["env"] = {"PUBLIC_KEY": " ".join(public_key.read_text().split()[:2])}

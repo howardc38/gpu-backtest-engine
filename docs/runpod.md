@@ -56,6 +56,18 @@ It writes `upload.tar.gz` and lists the exact files it contains. Inspect this
 bundle before using custom plugins. Its contents go to your rented machine;
 they are not published to GitHub.
 
+To reproduce the [published CPU/GPU and billion-pair benchmark](benchmarks.md):
+
+```bash
+gpu-backtest runpod --mode benchmark --ssh-key ~/.ssh/runpod_ed25519 \
+  --output-dir runs/runpod-benchmark --max-seconds 1800
+```
+
+This mode needs no config/market file: it generates public synthetic data, requests
+at least eight vCPUs, measures an eight-thread compiled CPU baseline and the GPU,
+then runs one billion unique RSI parameter pairs. It uses one paid GPU pod and
+the normal cleanup behavior. Timing can vary on another host.
+
 ## Execution and output
 
 The launcher validates the selected CSV, normalizes config paths, and packages

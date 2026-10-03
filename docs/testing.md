@@ -44,6 +44,11 @@ normal cancellation, cancellation during creation, price rejection, ambiguous
 allocation responses, metadata-write failure, upload selection, and unsafe tar
 entries. They do not rent GPUs during default tests.
 
+The [public performance benchmark](benchmarks.md) separately measures warmed
+compiled CPU/GPU reductions and a normal billion-pair engine run. Its CPU baseline
+is checked against the Python reference, including float32 sums of squares;
+default tests verify the billion grid size without executing that grid.
+
 ## Distribution contents
 
 `scripts/check_release.py` checks an explicit tracked-file allowlist and common

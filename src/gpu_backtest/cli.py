@@ -64,6 +64,12 @@ def main(argv=None):
     charts.add_argument("--output", required=True)
     gpu_check = subparsers.add_parser("gpu-check", help="Run small numeric checks on a real GPU")
     gpu_check.add_argument("--output")
+    benchmark = subparsers.add_parser("benchmark", help="Measure compiled CPU/GPU RSI sweeps")
+    benchmark.add_argument("--output", required=True)
+    benchmark.add_argument("--bars", type=int, default=1024)
+    benchmark.add_argument("--cpu-threads", type=int, default=8)
+    benchmark.add_argument("--repeats", type=int, default=3)
+    benchmark.add_argument("--billion", action="store_true")
     runpod = subparsers.add_parser(
         "runpod", help="Lease one GPU, run a selected job, download, clean up"
     )
@@ -71,7 +77,9 @@ def main(argv=None):
     runpod.add_argument("--output-dir", required=True)
     runpod.add_argument("--ssh-key")
     runpod.add_argument("--plugin-dir")
-    runpod.add_argument("--mode", choices=("run", "pipeline", "check"), default="pipeline")
+    runpod.add_argument(
+        "--mode", choices=("run", "pipeline", "check", "benchmark"), default="pipeline"
+    )
     from .runpod import DEFAULT_IMAGE
 
     runpod.add_argument("--image", default=DEFAULT_IMAGE)
@@ -133,6 +141,16 @@ def main(argv=None):
             from .gpu_check import check_gpu
 
             check_gpu(args.output)
+        elif args.command == "benchmark":
+            from .benchmark import benchmark
+
+            benchmark(
+                args.output,
+                bars=args.bars,
+                cpu_threads=args.cpu_threads,
+                repeats=args.repeats,
+                billion=args.billion,
+            )
         else:
             from .runpod import launch, terminate_on_signal
 

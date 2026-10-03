@@ -184,6 +184,16 @@ def test_dry_run_never_reads_credentials_or_creates_a_pod(tmp_path, monkeypatch)
     assert not (tmp_path / "output/runpod_state.json").exists()
 
 
+def test_benchmark_bundle_needs_no_config_and_runs_billion_profile(tmp_path):
+    archive = tmp_path / "benchmark.tar.gz"
+    files = runpod.build_bundle(archive, mode="benchmark")
+    assert "engine/gpu_backtest/benchmark.py" in {f["file"] for f in files}
+    with tarfile.open(archive) as bundle:
+        command = bundle.extractfile("job.sh").read().decode()
+        assert "benchmark --output output/benchmark.json --billion" in command
+        assert "job.json" not in bundle.getnames()
+
+
 def test_bundle_contains_only_selected_python_plugin_and_data(tmp_path):
     plugins = tmp_path / "plugins"
     (plugins / "custom").mkdir(parents=True)
