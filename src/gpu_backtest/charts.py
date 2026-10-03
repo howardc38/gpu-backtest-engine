@@ -33,7 +33,7 @@ def write_charts(input_files, output_file):
                     tooltip=[*parameters, "effect_size"],
                 )
                 .properties(width=700, height=240, title=f"{Path(filename).name}: {parameter}")
-                .interactive()
+                .interactive(name=f"zoom_{len(charts)}")
             )
     if not charts:
         raise ValueError("At least one top CSV is required")

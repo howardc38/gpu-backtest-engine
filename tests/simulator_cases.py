@@ -12,6 +12,16 @@ def test_rsi_matches_cpu_reference(tmp_path):
     check_rsi_reference(tmp_path)
 
 
+def test_packaged_gpu_check_numeric_anchors(tmp_path):
+    from gpu_backtest.gpu_check import check_numerics
+
+    assert check_numerics(tmp_path) == {
+        "known_matrix": "pass",
+        "repeat_determinism": "pass",
+        "rsi_hand_calculation": "pass",
+    }
+
+
 @pytest.mark.parametrize(
     "exit_open,fee,expected",
     [

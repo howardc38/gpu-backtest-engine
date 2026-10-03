@@ -34,8 +34,15 @@ NUMBA_ENABLE_CUDASIM=0 python -m pytest -m gpu -v
 
 GPU tests fail if simulation is enabled, and skip if no NVIDIA GPU is available.
 Require actual passes, rather than skips, before claiming hardware validation.
-The release's initial validation uses simulation; real-GPU compilation, floating
-point tolerances, and large-grid performance remain unverified.
+The packaged `gpu-backtest gpu-check` command performs numeric hardware checks
+without pytest. It and the public RSI pipeline passed on an RTX 4090; see the
+[validation record](runpod-validation.md). This establishes small-grid GPU
+compilation/results, not large-grid performance or arbitrary plugin correctness.
+
+RunPod lifecycle tests simulate create/SSH/job/download/cleanup failures, timeouts,
+normal cancellation, cancellation during creation, price rejection, ambiguous
+allocation responses, metadata-write failure, upload selection, and unsafe tar
+entries. They do not rent GPUs during default tests.
 
 ## Distribution contents
 

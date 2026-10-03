@@ -6,6 +6,6 @@
   "entry_dims": [["p_e", 2, 4, 2, false], ["buy_lvl", 20, 30, 10, false]],
   "exit_dims": [["p_x", 2, 4, 2, false], ["sell_lvl", 70, 80, 10, false]],
   "top_n": 4,
-  "expected_interval": "1d",
+  "expected_interval": "1D",
   "num_splits": 3
 }

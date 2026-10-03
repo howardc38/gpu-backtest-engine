@@ -62,6 +62,26 @@ def main(argv=None):
     charts = subparsers.add_parser("charts")
     charts.add_argument("--input", nargs="+", required=True)
     charts.add_argument("--output", required=True)
+    gpu_check = subparsers.add_parser("gpu-check", help="Run small numeric checks on a real GPU")
+    gpu_check.add_argument("--output")
+    runpod = subparsers.add_parser(
+        "runpod", help="Lease one GPU, run a selected job, download, clean up"
+    )
+    runpod.add_argument("--config")
+    runpod.add_argument("--output-dir", required=True)
+    runpod.add_argument("--ssh-key")
+    runpod.add_argument("--plugin-dir")
+    runpod.add_argument("--mode", choices=("run", "pipeline", "check"), default="pipeline")
+    from .runpod import DEFAULT_IMAGE
+
+    runpod.add_argument("--image", default=DEFAULT_IMAGE)
+    runpod.add_argument("--gpu", default="NVIDIA GeForce RTX 4090")
+    runpod.add_argument("--cloud", choices=("SECURE", "COMMUNITY"), default="SECURE")
+    runpod.add_argument("--max-seconds", type=int, default=1800)
+    runpod.add_argument("--max-hourly-rate", type=float, default=1.0)
+    runpod.add_argument("--keep-pod", action="store_true")
+    runpod.add_argument("--charts", action="store_true")
+    runpod.add_argument("--dry-run", action="store_true")
     args = parser.parse_args(argv)
     try:
         if args.command in ("run", "pipeline"):
@@ -105,10 +125,33 @@ def main(argv=None):
                     "output_file": args.output,
                 }
             )
-        else:
+        elif args.command == "charts":
             from .charts import write_charts
 
             print(write_charts(args.input, args.output))
-    except (ValueError, ImportError, OSError, KeyError, TypeError) as exc:
+        elif args.command == "gpu-check":
+            from .gpu_check import check_gpu
+
+            check_gpu(args.output)
+        else:
+            from .runpod import launch, terminate_on_signal
+
+            with terminate_on_signal():
+                launch(
+                    config_path=args.config,
+                    output_dir=args.output_dir,
+                    ssh_key=args.ssh_key,
+                    mode=args.mode,
+                    plugin_dir=args.plugin_dir,
+                    image=args.image,
+                    gpu=args.gpu,
+                    cloud=args.cloud,
+                    max_seconds=args.max_seconds,
+                    max_hourly_rate=args.max_hourly_rate,
+                    keep_pod=args.keep_pod,
+                    charts=args.charts,
+                    dry_run=args.dry_run,
+                )
+    except (ValueError, ImportError, OSError, KeyError, TypeError, RuntimeError) as exc:
         parser.exit(2, f"gpu-backtest: {exc}\n")
     return 0

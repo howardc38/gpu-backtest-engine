@@ -37,9 +37,29 @@ runs/rsi_top_manifest.json
 `examples/synthetic.csv` contains generated bars, not historical market data.
 Regenerate it with `python examples/generate_data.py`.
 
-## NVIDIA GPU setup
+## RunPod: use a GPU from your laptop
 
-Install a compatible driver and CUDA runtime/toolkit. The separate NVIDIA
+The same engine runs on a rented RunPod GPU. With a funded account, Pod API key,
+and registered SSH key:
+
+```bash
+gpu-backtest runpod --config examples/rsi.json \
+  --ssh-key ~/.ssh/runpod_ed25519 --output-dir runs/runpod-rsi --charts
+```
+
+This leases one RTX 4090, uploads selected engine/data/plugin files, installs the
+environment, runs hardware numeric checks and the pipeline, downloads output,
+and deletes the pod. Add `--dry-run` to inspect the bundle without renting anything;
+`--mode run` selects one sweep and `--mode check` runs only hardware checks.
+Private modules can be supplied with `--plugin-dir` without adding them to this repo.
+See [the RunPod guide](docs/runpod.md) for setup, the manual route, environment
+requirements, time/rate limits, custom plugins, and cleanup behavior.
+
+## NVIDIA GPU setup (inside the GPU machine)
+
+Run these commands in the GPU computer's terminal. For RunPod, use the pinned
+setup in [the RunPod guide](docs/runpod.md); your laptop only controls the launcher.
+For another GPU workstation/server, install a compatible driver and CUDA runtime/toolkit. The separate NVIDIA
 `numba-cuda` backend uses the same `from numba import cuda` interface:
 
 ```bash
@@ -140,9 +160,10 @@ plugin loading. For a real NVIDIA GPU:
 NUMBA_ENABLE_CUDASIM=0 python -m pytest -m gpu -v
 ```
 
-See [testing details](docs/testing.md). Real-GPU execution of this public package
-has not yet been validated; simulator checks do not prove GPU compilation,
-hardware rounding behavior, or large-grid performance.
+See [testing details](docs/testing.md) and the [RunPod validation record](docs/runpod-validation.md).
+Small numeric checks and the public RSI pipeline have passed on a real RTX 4090.
+Large-grid performance, other hardware/backend versions, and custom strategies
+still require their own validation.
 
 ## License
 
