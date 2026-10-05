@@ -18,6 +18,7 @@ ALLOWED = {
     "benchmarks/results/rtx4090_rsi_matched_billion_20261003.json",
     "benchmarks/results/runpod_validation_20261003.md",
     "docs/benchmarks.md",
+    "docs/repository.md",
     "docs/runpod.md",
     "docs/strategy.md",
     "examples/gpu_backtest_examples/__init__.py",

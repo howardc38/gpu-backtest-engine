@@ -13,30 +13,28 @@ The historical timing includes v0.4's output processing; it is not a new v0.6 ti
 - **Large grids:** deterministic GPU reductions without materializing the full return matrix.
 - **Your machine or RunPod:** use a local NVIDIA GPU or the separate cloud helper.
 
-## Where everything lives
+## Folder guide
 
-```text
-src/gpu_backtest/
-  core/                         GPU engine, kernels, grids, indicators, raw output
-  cli/                          Thin command-line adapters
-examples/gpu_backtest_examples/
-  rsi/                          Educational strategy + config + generated CSV
-  data.py                       Synthetic data generator
-tools/gpu_backtest_tools/
-  runpod/                       Optional API / SSH / bundle / lifecycle helper
-  benchmarks/                   Performance runner and compiled CPU comparison
-  checks/                       Hardware smoke checks and CPU numeric reference
-tests/
-  cpu/                          Contracts, examples, CLI, helpers and CPU reference
-  gpu/                          Isolated CUDA simulation and real-GPU tests
-docs/                           Strategy contract, RunPod usage, benchmark method
-benchmarks/results/             Historical measurements and validation evidence
-```
+| Folder | What it contains |
+|---|---|
+| [src/gpu_backtest/core/](src/gpu_backtest/core/) | Runs your strategy on the GPU and saves raw results |
+| [src/gpu_backtest/cli/](src/gpu_backtest/cli/) | Reads terminal commands and calls the engine or a helper |
+| [examples/](examples/) | A small RSI strategy, runnable config and generated price data |
+| [tests/](tests/) | Checks correctness using known answers, CPU simulation and actual GPUs |
+| [tools/gpu_backtest_tools/runpod/](tools/gpu_backtest_tools/runpod/) | Rents a GPU, runs your job, downloads results and deletes its pod |
+| [tools/gpu_backtest_tools/benchmarks/](tools/gpu_backtest_tools/benchmarks/) | Measures the same workload on CPU and GPU |
+| [tools/gpu_backtest_tools/checks/](tools/gpu_backtest_tools/checks/) | Checks GPU availability and a few known numerical answers |
+| [benchmarks/results/](benchmarks/results/) | Saved reports supporting the speed and correctness claims |
+| [docs/](docs/) | Instructions for writing strategies, using RunPod and measuring speed |
+| [scripts/](scripts/) | Checks which files can be included in a public release |
+| [.github/workflows/](.github/workflows/) | Runs automated checks on GitHub |
 
-**Start with `core/engine.py`** for a GPU run. CUDA kernels are in
-`core/kernels.py`; trading rules are supplied by a plugin. Core imports no example,
-CPU backtest comparison, benchmark, or RunPod code. Market validation and indicator
-preparation use the CPU before GPU execution.
+[Every folder and file explained](docs/repository.md).
+
+Start with [core/engine.py](src/gpu_backtest/core/engine.py) to follow a backtest.
+[kernels.py](src/gpu_backtest/core/kernels.py) contains the CUDA calculation;
+trading rules come from your strategy. Market data and indicator tables are
+prepared on the CPU before GPU execution.
 
 ## Try the RSI example without a GPU
 
