@@ -1,9 +1,9 @@
 include LICENSE README.md CONTRIBUTING.md
 recursive-include src/gpu_backtest *.py
-recursive-include src/gpu_backtest *.txt
-recursive-include tests *.py
+recursive-include tools/gpu_backtest_tools *.py *.txt
+recursive-include examples/gpu_backtest_examples *.py *.json *.csv *.md
+recursive-include tests *.py *.md
 recursive-include docs *.md
-recursive-include benchmarks *.json
-recursive-include examples *.py *.json *.csv
+recursive-include benchmarks *.json *.md
 recursive-include scripts *.py
 global-exclude __pycache__ *.py[cod] .env *.pem *.key

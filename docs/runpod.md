@@ -31,7 +31,7 @@ remote job, and state file. Server error bodies/auth headers are not printed.
 From an installed checkout:
 
 ```bash
-gpu-backtest runpod --config examples/rsi.json \
+gpu-backtest runpod --config examples/gpu_backtest_examples/rsi/config.json \
   --ssh-key ~/.ssh/runpod_ed25519 --output-dir runs/runpod-rsi --charts
 ```
 
@@ -48,7 +48,7 @@ The output directory must be new or empty. A dry run reads no API credentials,
 requires no SSH key, and rents no GPU:
 
 ```bash
-gpu-backtest runpod --config examples/rsi.json \
+gpu-backtest runpod --config examples/gpu_backtest_examples/rsi/config.json \
   --output-dir runs/runpod-preview --dry-run
 ```
 
@@ -97,7 +97,7 @@ runpod/pytorch:2.4.0-py3.11-cuda12.4.1-devel-ubuntu22.04
 This existing official image supplies Python 3.11, SSH, and CUDA development
 libraries. The engine does not use its PyTorch installation. The launcher creates
 an isolated venv and installs the engine with the pinned
-[validated environment](../src/gpu_backtest/runpod_requirements.txt), using the
+[validated environment](../tools/gpu_backtest_tools/runpod/requirements.txt), using the
 image's CUDA toolkit. Optional charts use Altair 6.3.0. Overrides must supply Python 3.11–3.13,
 compatible CUDA development libraries/driver, SSH, tar, and `nvidia-smi`.
 
@@ -151,7 +151,7 @@ source .venv/bin/activate
 python -m pip install -e '.[dev,viz,cuda]' 'cuda-bindings>=12.9.1,<13'
 NUMBA_ENABLE_CUDASIM=0 gpu-backtest gpu-check --output runs/gpu_check.json
 NUMBA_ENABLE_CUDASIM=0 gpu-backtest pipeline \
-  --config examples/rsi.json --output-dir runs/example
+  --config examples/gpu_backtest_examples/rsi/config.json --output-dir runs/example
 gpu-backtest charts --input runs/example/*_top_entry.csv runs/example/*_top_exit.csv \
   --output runs/example/charts.html
 ```
@@ -161,5 +161,5 @@ launcher deletes only pods it creates. Small hardware checks establish GPU
 compilation and explicit numeric cases, not large-grid speed or every strategy's
 correctness.
 
-See [the hardware validation record](runpod-validation.md) for the tested image,
+See [the hardware validation record](../benchmarks/results/runpod_validation_20261003.md) for the tested image,
 driver, package versions, numeric results, and successful cleanup.

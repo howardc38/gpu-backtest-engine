@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gpu-backtest-engine"
-version = "0.4.0"
+version = "0.5.0"
 description = "Pluggable GPU parameter sweeps with deterministic entry/exit effect-size analysis"
 readme = "README.md"
 requires-python = ">=3.11,<3.14"
@@ -25,11 +25,19 @@ gpu-backtest = "gpu_backtest.cli:main"
 Repository = "https://github.com/howardc38/gpu-backtest-engine"
 Issues = "https://github.com/howardc38/gpu-backtest-engine/issues"
 
+[tool.setuptools.package-dir]
+gpu_backtest = "src/gpu_backtest"
+gpu_backtest_examples = "examples/gpu_backtest_examples"
+gpu_backtest_tools = "tools/gpu_backtest_tools"
+
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["src", "examples", "tools"]
+include = ["gpu_backtest", "gpu_backtest.*", "gpu_backtest_examples", "gpu_backtest_examples.*", "gpu_backtest_tools", "gpu_backtest_tools.*"]
+namespaces = false
 
 [tool.setuptools.package-data]
-gpu_backtest = ["runpod_requirements.txt"]
+"gpu_backtest_tools.runpod" = ["requirements.txt"]
+"gpu_backtest_examples.rsi" = ["config.json", "synthetic.csv"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
