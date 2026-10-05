@@ -1,6 +1,6 @@
 # Public CPU/GPU benchmark: minutes saved on a billion-pair sweep
 
-Measured on 2026-10-03 with the public RSI example and deterministic generated
+Historical v0.4 measurement on 2026-10-03 with the public RSI example and deterministic generated
 OHLCV data. The headline compares **the same full billion-pair job on CPU and GPU**.
 The [full raw report](../benchmarks/results/rtx4090_rsi_matched_billion_20261003.json)
 contains exact timings, both parameter grids, hardware/software, and input SHA-256.
@@ -83,7 +83,7 @@ host with eight CPU threads, 16,777,216 pairs × 1,024 bars took CPU median 6.41
 vs GPU median 1.654 s, or 3.88×. Its GPU-only billion run took 43.341 s; that older
 record did not run the full billion grid on CPU.
 
-The new matched run also measured that smaller grid: CPU median 8.286 s vs GPU
+The matched v0.4 run also measured that smaller grid: CPU median 8.286 s vs GPU
 median 1.717 s, or 4.83×. The difference between hosts illustrates why results
 must state hardware, thread count, workload, and timing scope.
 
@@ -94,7 +94,12 @@ input/indicator preparation, GPU transfers/allocation, compilation, result copie
 statistics and CSV writing are excluded. CPU output array allocation is included.
 All four grouped arrays matched exactly in those smaller comparisons.
 
-## Reproduce the full comparison
+## Run the current comparison
+
+v0.6 keeps the same grids, numerical kernels and CPU/GPU checks, but writes raw
+NPZ/schema-2 manifests instead of statistics and ranked CSVs. The historical JSON
+reports above are unchanged. New reports describe their actual raw-output timing;
+current runs are not an exact reproduction of the old output-processing workload.
 
 On a compatible GPU machine:
 

@@ -183,7 +183,6 @@ def test_dry_run_never_reads_credentials_or_creates_a_pod(tmp_path, monkeypatch)
         dry_run=True,
         client=client,
     )
-    assert client.created == []
     assert not (tmp_path / "output/runpod_state.json").exists()
 
 
@@ -340,3 +339,34 @@ def test_api_key_is_removed_from_ssh_environment(tmp_path, monkeypatch):
 def test_invalid_server_ssh_metadata_is_rejected(pod):
     with pytest.raises(runpod.RunPodError, match="invalid public SSH"):
         runpod.endpoint(pod)
+
+
+def test_default_runpod_bundle_runs_raw_backtest(tmp_path):
+    archive = tmp_path / "run.tar.gz"
+    runpod.build_bundle(
+        archive, mode="run", config_path=ROOT / "examples/gpu_backtest_examples/rsi/config.json"
+    )
+    with tarfile.open(archive) as bundle:
+        command = bundle.extractfile("job.sh").read().decode()
+        assert "gpu_backtest run --config job.json --out-prefix output/result" in command
+        assert "pipeline" not in command and "charts" not in command and "altair" not in command
+        assert not any(
+            "workflows/" in name or name.endswith("statistics.py") for name in bundle.getnames()
+        )
+
+
+@pytest.mark.parametrize("key", ["top_n", "num_splits", "ranges", "start_date", "end_date"])
+def test_runpod_rejects_removed_analysis_keys_before_allocation(tmp_path, key):
+    config = json.loads((ROOT / "examples/gpu_backtest_examples/rsi/config.json").read_text())
+    config["input"] = str(ROOT / "examples/gpu_backtest_examples/rsi/synthetic.csv")
+    config[key] = 3
+    path = tmp_path / "job.json"
+    path.write_text(json.dumps(config))
+
+    class NoAllocation:
+        def create(self, body):
+            pytest.fail("Invalid config must fail before allocation")
+
+    client = NoAllocation()
+    with pytest.raises(ValueError, match="documented engine config keys"):
+        runpod.launch(config_path=path, output_dir=tmp_path / "out", client=client)

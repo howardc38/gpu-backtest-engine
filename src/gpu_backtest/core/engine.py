@@ -9,7 +9,7 @@ from .data import validate_market_data
 from .grid import dim_arrays, space_count
 from .indicators import prepare_tables
 from .kernels import build_kernels
-from .output import validate_reduction_outputs, write_top_csv
+from .output import validate_reduction_outputs, write_results
 from .strategy import MAX_DIMS, load_strategy, validate_strategy
 
 
@@ -19,7 +19,6 @@ def run(
     out_prefix,
     buy=0.0015,
     sell=0.0015,
-    top_n=10000,
     threads_per_block=128,
     entry_dims=None,
     exit_dims=None,
@@ -33,8 +32,6 @@ def run(
         raise ValueError(f"Entry and exit dimensions must each contain 1 to {MAX_DIMS} dimensions")
     if not np.isfinite([buy, sell]).all() or buy < 0 or sell < 0:
         raise ValueError("Commissions must be finite and non-negative")
-    if isinstance(top_n, bool) or not isinstance(top_n, (int, np.integer)) or top_n < 1:
-        raise ValueError("top_n must be a positive integer")
     if (
         isinstance(threads_per_block, bool)
         or not isinstance(threads_per_block, (int, np.integer))
@@ -43,10 +40,6 @@ def run(
         raise ValueError("threads_per_block must be an integer between 1 and 1024")
     validate_strategy(strategy, e_dims, x_dims)
     entry_count, exit_count = (space_count(e_dims), space_count(x_dims))
-    if out_prefix and (entry_count < 2 or exit_count < 2):
-        raise ValueError(
-            "Effect-size isolation requires at least two entry and two exit combinations"
-        )
     if verbose:
         print(
             f"[{strategy.NAME}] entry={entry_count} × exit={exit_count} = {entry_count * exit_count:,} combos"
@@ -121,7 +114,7 @@ def run(
         print(f"grand total check: diff={reduction_checks['sum']['difference']:.2e}")
     out = {"entry_sum": es, "entry_sumsq": esq, "exit_sum": xs, "exit_sumsq": xsq}
     if out_prefix:
-        write_top_csv(
+        write_results(
             out_prefix,
             strategy.NAME,
             input_csv,
@@ -131,8 +124,9 @@ def run(
             esq,
             xs,
             xsq,
-            top_n,
             reduction_checks,
             verbose,
+            buy=buy,
+            sell=sell,
         )
     return out

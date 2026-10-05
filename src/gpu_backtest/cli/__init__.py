@@ -2,13 +2,13 @@
 
 import argparse
 
-from . import analysis, backtest, tools
+from . import backtest, tools
 
 
 def main(argv=None):
     parser = argparse.ArgumentParser(prog="gpu-backtest")
     subparsers = parser.add_subparsers(dest="command", required=True)
-    for group in (backtest, analysis, tools):
+    for group in (backtest, tools):
         group.register(subparsers)
     args = parser.parse_args(argv)
     try:

@@ -5,6 +5,17 @@ from pathlib import Path
 
 from gpu_backtest import resolve_strategy_name
 
+CONFIG_KEYS = {
+    "strategy",
+    "input",
+    "buy",
+    "sell",
+    "entry_dims",
+    "exit_dims",
+    "threads_per_block",
+    "expected_interval",
+}
+
 
 def job_options(args):
     config = {}
@@ -13,6 +24,9 @@ def job_options(args):
         config = json.loads(config_path.read_text())
         if not isinstance(config, dict):
             raise ValueError("Config must be a JSON object")
+        unknown = set(config) - CONFIG_KEYS
+        if unknown:
+            raise ValueError(f"Unknown engine config keys: {sorted(unknown)}")
         if config.get("input"):
             config["input"] = str(config_path.parent / config["input"])
     strategy = args.strategy if args.strategy is not None else config.get("strategy")
@@ -23,7 +37,6 @@ def job_options(args):
     for name, default in (
         ("buy", 0.0015),
         ("sell", 0.0015),
-        ("top_n", 100),
         ("threads_per_block", 128),
         ("expected_interval", None),
     ):

@@ -22,16 +22,13 @@ def register(subparsers):
     runpod.add_argument("--output-dir", required=True)
     runpod.add_argument("--ssh-key")
     runpod.add_argument("--plugin-dir")
-    runpod.add_argument(
-        "--mode", choices=("run", "pipeline", "check", "benchmark"), default="pipeline"
-    )
+    runpod.add_argument("--mode", choices=("run", "check", "benchmark"), default="run")
     runpod.add_argument("--image", default=DEFAULT_IMAGE)
     runpod.add_argument("--gpu", default="NVIDIA GeForce RTX 4090")
     runpod.add_argument("--cloud", choices=("SECURE", "COMMUNITY"), default="SECURE")
     runpod.add_argument("--max-seconds", type=int, default=1800)
     runpod.add_argument("--max-hourly-rate", type=float, default=1.0)
     runpod.add_argument("--keep-pod", action="store_true")
-    runpod.add_argument("--charts", action="store_true")
     runpod.add_argument("--dry-run", action="store_true")
     runpod.set_defaults(handler=execute)
 
@@ -68,6 +65,5 @@ def execute(args):
                 max_seconds=args.max_seconds,
                 max_hourly_rate=args.max_hourly_rate,
                 keep_pod=args.keep_pod,
-                charts=args.charts,
                 dry_run=args.dry_run,
             )

@@ -39,3 +39,8 @@ For the seven-bar hand-calculated fixture, the zero-fee trade buys 125 units at
 80 and sells them at 120: return 50%. At 0.15% per side, buy fee is 15 and sell
 fee is 22.5; final equity is 14,962.5, giving 49.625%. Tests also cover a losing
 round trip, no-entry conditions, and ignored final-bar pending orders.
+
+
+The run writes `runs/rsi_results.npz` and `runs/rsi_manifest.json`. The four raw
+arrays retain Cartesian parameter order; the manifest records dimensions and fees.
+Apply your own result analysis outside the engine.

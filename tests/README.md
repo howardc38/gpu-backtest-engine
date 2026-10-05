@@ -2,9 +2,9 @@
 
 | Directory | Runs where | What it checks |
 |---|---|---|
-| `cpu/` | CPU only | Core contracts, indicators/statistics, CLI/workflows, example reference, mocked RunPod lifecycle, benchmark CPU baseline, import boundaries |
+| `cpu/` | CPU only | Core contracts, indicators, raw artifacts, CLI, example reference, mocked RunPod lifecycle, benchmark CPU baseline, import boundaries |
 | `gpu/test_simulator.py` + `simulator_cases.py` | CPU CUDA simulator in a child process | Actual GPU kernels against explicit matrix/RSI answers and CPU reference |
-| `gpu/test_hardware.py` | Real NVIDIA GPU | Kernel reductions and RSI reference comparison; marked `gpu` |
+| `gpu/test_hardware.py` | Real NVIDIA GPU | Kernel reductions, RSI reference and single-combination raw output; marked `gpu` |
 
 ```bash
 python -m pytest                         # CPU + isolated simulation; no rented pod
@@ -35,3 +35,9 @@ For changes to numerical logic, run both simulation and real-GPU checks. A pure
 module/layout refactor must preserve the kernel body and compare previous/current
 outputs. Installing the wheel and checking its RunPod export catches packaging
 errors that editable-checkout tests can miss.
+
+
+Raw output tests reload NPZ with pickle disabled, assert exact float64 array values,
+ordered dimensions, fees, schema-2 counts and file SHA-256. Single-combination output
+is anchored against hand-calculated profitable, fee-paying and losing trades.
+Tests also reject removed analysis commands/config fields before RunPod allocation.

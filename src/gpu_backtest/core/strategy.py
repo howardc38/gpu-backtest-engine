@@ -4,8 +4,6 @@ import importlib
 import math
 from numbers import Real
 
-from .statistics import _STAT_COLS
-
 MAX_DIMS = 4
 MAX_TABLES = 4
 MAX_INDEX = 2**63 - 1
@@ -39,8 +37,8 @@ def _validate_dims(dims, side):
         if not isinstance(dim, (list, tuple)) or len(dim) != 5:
             raise ValueError("Each dimension must be (name, low, high, step, is_float)")
         name, low, high, step, is_float = dim
-        if not isinstance(name, str) or not name.isidentifier() or name in _STAT_COLS:
-            raise ValueError(f"Invalid or reserved parameter name: {name!r}")
+        if not isinstance(name, str) or not name.isidentifier():
+            raise ValueError(f"Invalid parameter name: {name!r}")
         if type(is_float) is not bool:
             raise ValueError(f"{name}: is_float must be a boolean")
         if any(isinstance(v, bool) or not isinstance(v, Real) for v in (low, high, step)):
