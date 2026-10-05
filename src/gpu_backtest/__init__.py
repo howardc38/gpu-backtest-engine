@@ -1,6 +1,6 @@
-"""Pluggable GPU parameter sweeps and grouped-return analysis."""
+"""Pluggable GPU parameter sweeps with raw grouped results."""
 
-__version__ = "0.5.0"
+__version__ = "0.6.0"
 
 
 def resolve_strategy_name(value):

@@ -34,7 +34,7 @@ def test_builtin_and_module_object_loading():
         ([("entry", 2, 1, 1, False)], "low <= high"),
         ([("entry", 1, 2, 0.5, False)], "integer bounds"),
         ([("entry", 0.0, 1.0, 0.3, True)], "lie on"),
-        ([("effect_size", 1, 2, 1, False)], "reserved"),
+        ([("bad name", 1, 2, 1, False)], "Invalid parameter name"),
         ([("entry", 1, float("inf"), 1, False)], "finite"),
         ([("entry", 1, 2, 1, "i")], "boolean"),
         ([("entry", 1, 2, 1, False)] * 5, "1 to 4"),
@@ -84,3 +84,7 @@ def test_parameter_decode_preserves_sub_micro_precision():
 def test_invalid_import_names(value):
     with pytest.raises(ValueError, match="module name"):
         load_strategy(value)
+
+
+def test_parameter_names_are_independent_of_removed_analysis_columns():
+    validate_strategy(specification(ENTRY_DIMS=[("effect_size", 1, 2, 1, False)]))

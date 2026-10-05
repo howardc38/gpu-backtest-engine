@@ -1,6 +1,6 @@
 # Public CPU/GPU benchmark: minutes saved on a billion-pair sweep
 
-Measured on 2026-10-03 with the public RSI example and deterministic generated
+Historical v0.4 measurement on 2026-10-03 with the public RSI example and deterministic generated
 OHLCV data. The headline compares **the same full billion-pair job on CPU and GPU**.
 The [full raw report](../benchmarks/results/rtx4090_rsi_matched_billion_20261003.json)
 contains exact timings, both parameter grids, hardware/software, and input SHA-256.
@@ -83,7 +83,7 @@ host with eight CPU threads, 16,777,216 pairs × 1,024 bars took CPU median 6.41
 vs GPU median 1.654 s, or 3.88×. Its GPU-only billion run took 43.341 s; that older
 record did not run the full billion grid on CPU.
 
-The new matched run also measured that smaller grid: CPU median 8.286 s vs GPU
+The matched v0.4 run also measured that smaller grid: CPU median 8.286 s vs GPU
 median 1.717 s, or 4.83×. The difference between hosts illustrates why results
 must state hardware, thread count, workload, and timing scope.
 
@@ -94,7 +94,12 @@ input/indicator preparation, GPU transfers/allocation, compilation, result copie
 statistics and CSV writing are excluded. CPU output array allocation is included.
 All four grouped arrays matched exactly in those smaller comparisons.
 
-## Reproduce the full comparison
+## Run the current comparison
+
+v0.6 keeps the same grids, numerical kernels and CPU/GPU checks, but writes raw
+NPZ/schema-2 manifests instead of statistics and ranked CSVs. The historical JSON
+reports above are unchanged. New reports describe their actual raw-output timing;
+current runs are not an exact reproduction of the old output-processing workload.
 
 On a compatible GPU machine:
 
@@ -115,3 +120,21 @@ The RunPod route now includes the full CPU sweep. It can take several minutes,
 rents one paid GPU pod, downloads results, and deletes its pod. Hardware, host
 load, thread count, strategy, grid shape, bar count, and cold-start overhead affect
 whether GPU use is worthwhile. No universal speedup or trading-return claim is made.
+
+
+## v0.6 raw-output validation
+
+On 2026-10-05, one RTX 4090 RunPod ran the released v0.5 wheel and reviewed v0.6
+wheel against the same inputs, dimensions, fees and block size. Every float64 array
+matched byte-for-byte across four workloads: tiny RSI with/without fees, 16,777,216
+pairs, and 1,000,000,000 pairs (both large grids used 1,024 bars). The entire CUDA
+kernel file was identical. Candidate NPZ values matched API returns, ordered
+parameter manifests and file hashes were checked, and default RunPod bundle output
+matched the clean wheel. Five physical-GPU tests passed, including independent
+single-combination profit, commission and loss anchors.
+
+[Validation evidence](../benchmarks/results/rtx4090_raw_output_parity_20261005.json)
+records grids, data/array/kernel hashes, versions, hardware and zero differences.
+This validates numerical parity, not a new speedup claim. The result files are
+intentionally NPZ/schema-2 rather than ranked CSV/schema-1. Download completed,
+the owned pod was deleted, and the API confirmed zero active pods.

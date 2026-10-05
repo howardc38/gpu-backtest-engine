@@ -24,7 +24,7 @@ from gpu_backtest.core.grid import dim_arrays, space_count
 from gpu_backtest.core.indicators import prepare_tables
 from gpu_backtest.core.kernels import build_kernels
 from gpu_backtest.core.output import validate_reduction_outputs
-from gpu_backtest.core.output import write_top_csv as _write_top_csv
+from gpu_backtest.core.output import write_results as _write_results
 from gpu_backtest.core.strategy import validate_strategy
 
 from .cpu import build_cpu_reducer
@@ -141,7 +141,7 @@ def _cpu_info(threads):
 
 
 def run_cpu_baseline(source, prefix, entry_dims, exit_dims, reducer=None):
-    """CSV through ranked output using the compiled CPU two-pass reference."""
+    """CSV through raw NPZ/manifest output using the compiled CPU two-pass reference."""
     data = validate_market_data(source, expected_interval="1D")
     arrays = [
         data[c].to_numpy(dtype=np.float32) for c in ("Close", "Open", "High", "Low", "Volume")
@@ -151,21 +151,19 @@ def run_cpu_baseline(source, prefix, entry_dims, exit_dims, reducer=None):
     results = reducer(*args)
     checks = validate_reduction_outputs(*results)
     if prefix:
-        _write_top_csv(
+        _write_results(
             str(prefix),
             "rsi_meanrev",
             str(source),
             entry_dims,
             exit_dims,
             *results,
-            100,
             checks,
             False,
+            buy=0.0015,
+            sell=0.0015,
+            engine="gpu_backtest.benchmark_cpu",
         )
-        manifest = Path(f"{prefix}_top_manifest.json")
-        content = json.loads(manifest.read_text())
-        content["engine"] = "gpu_backtest.benchmark_cpu"
-        manifest.write_text(json.dumps(content, indent=2) + "\n")
     return dict(zip(RESULT_KEYS, results))
 
 
@@ -267,7 +265,7 @@ def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False, bil
                 "gpu_compile_and_warmup_seconds": gpu_warmup,
                 "max_absolute_differences": differences,
             },
-            "timing_scope": "Comparison: warmed two-pass reductions only. Shared input/table preparation, GPU transfers, compilation, result copying, statistics and CSV writing are excluded. CPU output allocation is included.",
+            "timing_scope": "Comparison: warmed two-pass reductions only. Shared input/table preparation, GPU transfers, compilation, result copying, raw NPZ/manifest writing are excluded. CPU output allocation is included.",
         }
         output.write_text(json.dumps(report, indent=2) + "\n")
         print(
@@ -287,7 +285,6 @@ def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False, bil
                 str(output.parent / "billion"),
                 entry_dims=e_dims,
                 exit_dims=x_dims,
-                top_n=100,
                 verbose=True,
             )
             elapsed = time.perf_counter() - started
@@ -302,7 +299,7 @@ def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False, bil
                 "reduction_array_bytes": sum((a.nbytes for a in large.values())),
                 "hypothetical_float32_matrix_bytes": entries * exits * 4,
                 "nonzero_entry_groups": int(np.count_nonzero(large["entry_sum"])),
-                "timing_scope": "Normal engine run including CSV validation, indicator tables, allocation/transfers, kernel construction/JIT, two GPU passes, copies, statistics and top CSV/manifest output. Excludes pod provisioning and dependency installation.",
+                "timing_scope": "Normal engine run including CSV validation, indicator tables, allocation/transfers, kernel construction/JIT, two GPU passes, copies, raw NPZ/manifest output. Excludes pod provisioning and dependency installation.",
             }
             output.write_text(json.dumps(report, indent=2) + "\n")
             print(f"Billion-pair normal engine run completed in {elapsed:.3f}s.", flush=True)
@@ -325,7 +322,7 @@ def benchmark(output, *, bars=1024, cpu_threads=8, repeats=3, billion=False, bil
                     end_to_end_speedup=cpu_elapsed / elapsed,
                     elapsed_seconds_saved=cpu_elapsed - elapsed,
                     cpu_gpu_max_absolute_differences=differences,
-                    cpu_timing_scope="Compiled CPU reference through CSV validation, indicator preparation, both passes, allocations, checks, statistics and CSV/manifest output. Reuses the reducer already compiled for the smaller comparison. No CUDA simulation. One full measured run, not an extrapolation.",
+                    cpu_timing_scope="Compiled CPU reference through CSV validation, indicator preparation, both passes, allocations, checks, raw NPZ/manifest output. Reuses the reducer already compiled for the smaller comparison. No CUDA simulation. One full measured run, not an extrapolation.",
                 )
                 output.write_text(json.dumps(report, indent=2) + "\n")
                 print(

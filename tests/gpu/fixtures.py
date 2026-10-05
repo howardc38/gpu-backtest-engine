@@ -49,7 +49,7 @@ def check_matrix(tmp_path, monkeypatch):
     source = tmp_path / "bars.csv"
     write_bars(source, rsi_bars())
     prefix = str(tmp_path / "result")
-    first = run(plugin, source, prefix, top_n=3, threads_per_block=32, verbose=False)
+    first = run(plugin, source, prefix, threads_per_block=32, verbose=False)
     expected = {
         "entry_sum": [39.0, 69.0],
         "exit_sum": [34.0, 36.0, 38.0],
@@ -58,21 +58,47 @@ def check_matrix(tmp_path, monkeypatch):
     }
     for key, values in expected.items():
         np.testing.assert_array_equal(first[key], values)
-    artifacts = [tmp_path / f"result_top_{side}.csv" for side in ("entry", "exit")]
-    artifacts.append(tmp_path / "result_top_manifest.json")
+    artifacts = [tmp_path / "result_results.npz", tmp_path / "result_manifest.json"]
     before = [path.read_bytes() for path in artifacts]
-    second = run(
-        load_strategy(plugin), source, prefix, top_n=3, threads_per_block=32, verbose=False
-    )
+    second = run(load_strategy(plugin), source, prefix, threads_per_block=32, verbose=False)
     for key in first:
-        np.testing.assert_array_equal(first[key], second[key])
+        assert first[key].tobytes() == second[key].tobytes()
     assert [path.read_bytes() for path in artifacts] == before
-    manifest = json.loads(artifacts[-1].read_text())
+    with np.load(artifacts[0], allow_pickle=False) as saved:
+        for key, values in expected.items():
+            np.testing.assert_array_equal(saved[key], values)
+            assert saved[key].dtype == np.float64
+    manifest = json.loads(artifacts[1].read_text())
+    assert manifest["schema_version"] == 2
     assert manifest["strategy"] == "matrix" and manifest["pair_count"] == 6
-    for side, count, order in (("entry", 2, [2, 1]), ("exit", 3, [3, 2, 1])):
-        data = pd.read_csv(tmp_path / f"result_top_{side}.csv")
-        assert len(data) == count
-        assert data[side].tolist() == order
+    assert manifest["entry_dims"] == [["entry", 1, 2, 1, False]]
+    assert manifest["exit_dims"] == [["exit", 1, 3, 1, False]]
+    assert not list(tmp_path.glob("*_top*"))
+
+
+def check_single_output(tmp_path, exit_open, fee, expected_sum, expected_square):
+    source = tmp_path / "single.csv"
+    write_bars(source, rsi_bars(exit_open))
+    result = run(
+        "gpu_backtest_examples.rsi.strategy",
+        source,
+        str(tmp_path / "single"),
+        buy=fee,
+        sell=fee,
+        entry_dims=[("p_e", 2, 2, 1, False), ("buy_lvl", 30, 30, 1, False)],
+        exit_dims=[("p_x", 2, 2, 1, False), ("sell_lvl", 70, 70, 1, False)],
+        verbose=False,
+    )
+    with np.load(tmp_path / "single_results.npz", allow_pickle=False) as saved:
+        for side in ("entry", "exit"):
+            np.testing.assert_allclose(saved[f"{side}_sum"], [expected_sum], rtol=0, atol=0.0001)
+            np.testing.assert_allclose(
+                saved[f"{side}_sumsq"], [expected_square], rtol=0, atol=0.0001
+            )
+            assert saved[f"{side}_sum"].tobytes() == result[f"{side}_sum"].tobytes()
+    manifest = json.loads((tmp_path / "single_manifest.json").read_text())
+    assert manifest["entry_count"] == manifest["exit_count"] == manifest["pair_count"] == 1
+    assert manifest["buy"] == manifest["sell"] == fee
 
 
 def check_rsi_reference(tmp_path):

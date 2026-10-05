@@ -4,7 +4,8 @@ Pass a module/object to `gpu_backtest.run`, or an installed dotted module name
 such as `my_strategies.example`. The separate example module is
 `gpu_backtest_examples.rsi.strategy`. The old `rsi_meanrev` shorthand is translated
 only at the public API/CLI edge; the core imports no example strategy.
-The package neither copies nor uploads an external plugin.
+A local engine run imports your installed plugin without copying it. The optional
+[RunPod helper](runpod.md) uploads selected strategy source and input data to the rented GPU.
 
 ## Required declarations
 
@@ -19,7 +20,7 @@ Each dimension is `(name, low, high, step, is_float)`. Endpoints are inclusive;
 `high` must lie on the grid. Names must be unique across both sides. Each side
 has one to four dimensions. Overrides may change ranges, but must preserve the
 declared names and order. Table windows must be positive integer dimensions.
-Ranked output requires at least two combinations on each side.
+A single combination on either side is supported, including raw file output.
 
 The last dimension varies fastest. `ep` and `xp` are four-element float64 arrays;
 only the slots corresponding to declared dimensions are defined. Integer
@@ -99,3 +100,26 @@ not establish that the intended rules are correct.
 
 See [the separate RSI example](../examples/gpu_backtest_examples/rsi/README.md)
 for a complete plugin, runnable config/data, and its execution/fee conventions.
+
+
+## Raw results
+
+`run()` returns `entry_sum`, `entry_sumsq`, `exit_sum`, `exit_sumsq`, each float64.
+With an output prefix it saves the same arrays in `<prefix>_results.npz`, plus a
+schema-2 `<prefix>_manifest.json`. Entry arrays have `entry_count` elements; exit
+arrays have `exit_count` elements. Each side aggregates across all combinations
+of the opposite side; these are grouped results, not a full pair-return matrix.
+Each per-pair return and square rounds to float32 before float64 accumulation.
+
+Array order follows declared dimension order; the last dimension varies fastest.
+The manifest stores dimensions as `[name, low, high, step, is_float]`, fees, counts,
+reduction checks, array dtypes/shapes and the NPZ SHA-256. Decode index `i` with
+`gpu_backtest.core.grid.decode_values(dims, i)` using the corresponding dimensions.
+
+Output contains no scoring, ranking, probabilities or intervals. `top_n` and date
+split settings are no longer accepted. Read NPZ with `numpy.load(..., allow_pickle=False)`
+and apply your own downstream analysis.
+
+The manifest marks completed output. A failed publication invalidates that marker;
+ignore an NPZ without its matching manifest. Check the recorded SHA-256 before
+consuming a persisted result pair.

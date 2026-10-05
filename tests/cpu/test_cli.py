@@ -4,7 +4,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-import pandas as pd
+import numpy as np
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -36,8 +36,11 @@ def test_config_paths_resolve_outside_checkout(tmp_path):
         cwd=tmp_path,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-    manifest = json.loads((tmp_path / "rsi_top_manifest.json").read_text())
+    manifest = json.loads((tmp_path / "rsi_manifest.json").read_text())
     assert manifest["pair_count"] == 16 and manifest["strategy"] == "rsi_meanrev"
+    with np.load(tmp_path / "rsi_results.npz", allow_pickle=False) as saved:
+        assert saved["entry_sum"].shape == (4,)
+        assert saved["entry_sum"].dtype == np.float64
 
 
 def test_strategy_is_always_explicit(tmp_path):
@@ -49,41 +52,19 @@ def test_strategy_is_always_explicit(tmp_path):
         tmp_path / "x",
     )
     assert result.returncode == 2 and "explicitly" in result.stderr
-    assert not (tmp_path / "x_top_entry.csv").exists()
+    assert not (tmp_path / "x_results.npz").exists()
 
 
-def test_complete_public_pipeline(tmp_path):
-    output = tmp_path / "pipeline"
-    result = invoke(
-        "pipeline",
-        "--config",
-        ROOT / "examples/gpu_backtest_examples/rsi/config.json",
-        "--output-dir",
-        output,
-        simulation=True,
-    )
-    assert result.returncode == 0, result.stdout + result.stderr
-    manifest = json.loads((output / "split_manifest.json").read_text())
-    assert [record["label"] for record in manifest["splits"]] == [
-        "full",
-        "first_half",
-        "second_half",
-    ]
-    assert len(list(output.glob("*_top_manifest.json"))) == 3
-    for side in ("entry", "exit"):
-        common = pd.read_csv(output / f"common_{side}.csv")
-        assert len(common) == 4
-        assert {"avg_effect_size", "min_effect_size", "effect_size_full"}.issubset(common.columns)
+@pytest.mark.parametrize("command", ["split", "common", "charts", "pipeline"])
+def test_analysis_commands_are_removed(command):
+    result = invoke(command)
+    assert result.returncode == 2 and "invalid choice" in result.stderr
 
 
-def test_optional_charts_detect_arbitrary_parameter_names(tmp_path):
-    pytest.importorskip("altair")
-    source = tmp_path / "sample_top.csv"
-    pd.DataFrame({"custom_threshold": [1, 2], "effect_size": [0.1, 0.2]}).to_csv(
-        source, index=False
-    )
-    output = tmp_path / "charts.html"
-    result = invoke("charts", "--input", source, "--output", output)
-    assert result.returncode == 0, result.stderr
-    html = output.read_text()
-    assert "custom_threshold" in html and "vegaEmbed" in html
+@pytest.mark.parametrize("key", ["top_n", "num_splits", "ranges", "start_date", "end_date"])
+def test_removed_config_options_are_rejected(tmp_path, key):
+    config = tmp_path / "job.json"
+    config.write_text(json.dumps({"strategy": "unused", "input": "unused.csv", key: 3}))
+    result = invoke("run", "--config", config, "--out-prefix", tmp_path / "x")
+    assert result.returncode == 2 and "Unknown engine config keys" in result.stderr
+    assert not (tmp_path / "x_results.npz").exists()

@@ -72,7 +72,7 @@ def test_generated_data_reproduces_public_example(tmp_path):
     assert generated.read_bytes() == original.read_bytes()
 
 
-def test_cpu_baseline_writes_complete_ranked_artifacts(tmp_path):
+def test_cpu_baseline_writes_raw_artifacts(tmp_path):
     import json
 
     source = generate_csv(tmp_path / "bars.csv", 32)
@@ -85,11 +85,14 @@ def test_cpu_baseline_writes_complete_ranked_artifacts(tmp_path):
     finally:
         numba.set_num_threads(old)
     assert set(result) == set(benchmark.RESULT_KEYS)
-    manifest = json.loads((tmp_path / "cpu_top_manifest.json").read_text())
+    manifest = json.loads((tmp_path / "cpu_manifest.json").read_text())
     assert manifest["engine"] == "gpu_backtest.benchmark_cpu"
     assert manifest["pair_count"] == 16
-    assert (tmp_path / "cpu_top_entry.csv").is_file()
-    assert (tmp_path / "cpu_top_exit.csv").is_file()
+    with np.load(tmp_path / "cpu_results.npz", allow_pickle=False) as saved:
+        for key in benchmark.RESULT_KEYS:
+            assert saved[key].tobytes() == result[key].tobytes()
+    assert manifest["schema_version"] == 2
+    assert not list(tmp_path.glob("*_top*"))
 
 
 def test_full_billion_cpu_flag_requires_billion_profile(monkeypatch, tmp_path):

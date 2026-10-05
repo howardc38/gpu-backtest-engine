@@ -10,13 +10,13 @@ import tempfile
 from pathlib import Path
 
 from gpu_backtest import __version__, resolve_strategy_name
+from gpu_backtest.cli.options import CONFIG_KEYS
 
 PACKAGE_FILES = {
     "gpu_backtest": [
         "__init__.py",
         "__main__.py",
         "cli/__init__.py",
-        "cli/analysis.py",
         "cli/backtest.py",
         "cli/options.py",
         "cli/tools.py",
@@ -27,13 +27,7 @@ PACKAGE_FILES = {
         "core/indicators.py",
         "core/kernels.py",
         "core/output.py",
-        "core/statistics.py",
         "core/strategy.py",
-        "workflows/__init__.py",
-        "workflows/charts.py",
-        "workflows/common.py",
-        "workflows/pipeline.py",
-        "workflows/splits.py",
     ],
     "gpu_backtest_examples": [
         "__init__.py",
@@ -58,31 +52,16 @@ PACKAGE_FILES = {
         "runpod/requirements.txt",
     ],
 }
-CONFIG_KEYS = {
-    "num_splits",
-    "exit_dims",
-    "input",
-    "buy",
-    "strategy",
-    "top_n",
-    "end_date",
-    "entry_dims",
-    "start_date",
-    "expected_interval",
-    "threads_per_block",
-    "ranges",
-    "sell",
-}
 IGNORED_PARTS = {"__pycache__", ".git", ".ruff_cache", "venv", ".venv", ".pytest_cache"}
 
 
-def build_bundle(archive, *, mode, config_path=None, plugin_dir=None, charts=False):
-    if mode not in ("run", "pipeline", "check", "benchmark"):
-        raise ValueError("RunPod mode must be run, pipeline, check, or benchmark")
+def build_bundle(archive, *, mode, config_path=None, plugin_dir=None):
+    if mode not in ("run", "check", "benchmark"):
+        raise ValueError("RunPod mode must be run, check, or benchmark")
     config = {}
-    if mode in ("run", "pipeline"):
+    if mode == "run":
         if not config_path:
-            raise ValueError("RunPod run/pipeline requires --config")
+            raise ValueError("RunPod run requires --config")
         config_path = Path(config_path).resolve()
         config = json.loads(config_path.read_text())
         if not isinstance(config, dict) or set(config) - CONFIG_KEYS:
@@ -135,7 +114,7 @@ where = ["."]
             if str(entry) == "LICENSE" or str(entry).endswith("/licenses/LICENSE"):
                 shutil.copyfile(distribution.locate_file(entry), engine / "LICENSE")
                 break
-        if mode in ("run", "pipeline"):
+        if mode == "run":
             (staging / "input").mkdir()
             shutil.copyfile(source, staging / "input/market.csv")
             config["input"] = "input/market.csv"
@@ -157,19 +136,16 @@ where = ["."]
                 copied += 1
             if not copied:
                 raise ValueError("Plugin directory contains no Python files")
-        if mode in ("run", "pipeline"):
+        if mode == "run":
             config["strategy"] = resolve_strategy_name(config["strategy"])
             (staging / "job.json").write_text(json.dumps(config, indent=2) + "\n")
-        if (
-            mode in ("run", "pipeline")
-            and config["strategy"] != "gpu_backtest_examples.rsi.strategy"
-        ):
+        if mode == "run" and config["strategy"] != "gpu_backtest_examples.rsi.strategy":
             relative = Path(*config["strategy"].split("."))
             if not (staging / "plugins" / relative.with_suffix(".py")).is_file() and (
                 not (staging / "plugins" / relative / "__init__.py").is_file()
             ):
                 raise ValueError("External strategy must be present in --plugin-dir")
-        (staging / "job.sh").write_text(remote_script(mode, charts=charts))
+        (staging / "job.sh").write_text(remote_script(mode))
         files = []
         for path in sorted(staging.rglob("*")):
             if path.is_file():
@@ -187,7 +163,7 @@ where = ["."]
     return files
 
 
-def remote_script(mode, *, charts=False):
+def remote_script(mode):
     script = """#!/bin/bash
 set -euo pipefail
 export NUMBA_ENABLE_CUDASIM=0
@@ -203,13 +179,7 @@ env/bin/python -m gpu_backtest gpu-check --output output/gpu_check.json
         script += (
             "env/bin/python -m gpu_backtest run --config job.json --out-prefix output/result\n"
         )
-    elif mode == "pipeline":
-        script += "env/bin/python -m gpu_backtest pipeline --config job.json --output-dir output/pipeline\n"
     elif mode == "benchmark":
         script += "env/bin/python -m gpu_backtest benchmark --output output/benchmark.json --billion --billion-cpu\n"
-    if charts and mode in ("run", "pipeline"):
-        folder = "output/pipeline" if mode == "pipeline" else "output"
-        script += "env/bin/python -m pip install 'altair==6.3.0'\n"
-        script += f"env/bin/python -m gpu_backtest charts --input {folder}/*_top_entry.csv {folder}/*_top_exit.csv --output output/charts.html\n"
     script += "env/bin/python -m pip freeze > output/requirements-resolved.txt\n"
     return script

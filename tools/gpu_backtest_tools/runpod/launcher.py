@@ -81,7 +81,7 @@ def launch(
     config_path=None,
     output_dir,
     ssh_key=None,
-    mode="pipeline",
+    mode="run",
     plugin_dir=None,
     image=DEFAULT_IMAGE,
     gpu="NVIDIA GeForce RTX 4090",
@@ -89,7 +89,6 @@ def launch(
     max_seconds=1800,
     max_hourly_rate=1.0,
     keep_pod=False,
-    charts=False,
     dry_run=False,
     client=None,
     transport_factory=SSHTransport,
@@ -109,7 +108,6 @@ def launch(
         mode=mode,
         config_path=config_path,
         plugin_dir=plugin_dir,
-        charts=charts,
     )
     if dry_run:
         print(

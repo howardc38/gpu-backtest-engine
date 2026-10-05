@@ -35,7 +35,5 @@
       false
     ]
   ],
-  "top_n": 4,
-  "expected_interval": "1D",
-  "num_splits": 3
+  "expected_interval": "1D"
 }

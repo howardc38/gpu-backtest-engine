@@ -1,0 +1,358 @@
+{
+  "schema_version": 1,
+  "recorded_at_utc": "2026-10-05T15:48:45.133035+00:00",
+  "baseline_version": "0.5.0",
+  "candidate_version": "0.6.0",
+  "baseline_commit": "6bf72d725ce95ac7b34789ef2b811f6b0b08b9d3",
+  "gpu": {
+    "name": "NVIDIA GeForce RTX 4090",
+    "compute_capability": [
+      8,
+      9
+    ],
+    "driver_query": "NVIDIA GeForce RTX 4090, 570.172.08"
+  },
+  "python": "3.11.10",
+  "packages": {
+    "gpu-backtest-engine": "0.6.0",
+    "numba": "0.65.1",
+    "numba-cuda": "0.30.4",
+    "numpy": "2.4.6",
+    "pandas": "3.0.6",
+    "llvmlite": "0.47.0",
+    "cuda-bindings": "12.9.9"
+  },
+  "simulation": false,
+  "kernel_file_sha256": "3c6563b01e4489c424cd69ba7b3dcc83c00107444f5a313268a56661e9d2e3c8",
+  "all_arrays_byte_identical": true,
+  "default_runpod_bundle_matches_clean_wheel": true,
+  "current_npz_matches_api_arrays": true,
+  "current_manifest_schema_and_hash_checked": true,
+  "physical_gpu_tests_passed": 5,
+  "comparisons": [
+    {
+      "name": "example_fee",
+      "bars": 128,
+      "pair_count": 16,
+      "data_sha256": "d66e7b48d7daea048db45f2c8b2d39855cd0dc4cc11169cf6370d7a100d14ab3",
+      "entry_dims": [
+        [
+          "p_e",
+          2,
+          4,
+          2,
+          false
+        ],
+        [
+          "buy_lvl",
+          20,
+          30,
+          10,
+          false
+        ]
+      ],
+      "exit_dims": [
+        [
+          "p_x",
+          2,
+          4,
+          2,
+          false
+        ],
+        [
+          "sell_lvl",
+          70,
+          80,
+          10,
+          false
+        ]
+      ],
+      "buy": 0.0015,
+      "sell": 0.0015,
+      "threads_per_block": 128,
+      "arrays": {
+        "entry_sum": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "1f88270eabd98af76559aa7acfeef52f90072e9a75db235e8f40a0695aba9726"
+        },
+        "entry_sumsq": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "0b269272a61c098f3f26eebe8faff26b65921f1ec16a081f8485e1c4a71a27cd"
+        },
+        "exit_sum": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "4405df6a7f94385e99c3b5af3a3092383775725ea4f236428f23fe3f025a00c2"
+        },
+        "exit_sumsq": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "f13dde05c1c32ebc64f34af57103375444c0270c6d7d5e348ca48e9d83a87bcb"
+        }
+      }
+    },
+    {
+      "name": "example_zero_fee",
+      "bars": 128,
+      "pair_count": 16,
+      "data_sha256": "d66e7b48d7daea048db45f2c8b2d39855cd0dc4cc11169cf6370d7a100d14ab3",
+      "entry_dims": [
+        [
+          "p_e",
+          2,
+          4,
+          2,
+          false
+        ],
+        [
+          "buy_lvl",
+          20,
+          30,
+          10,
+          false
+        ]
+      ],
+      "exit_dims": [
+        [
+          "p_x",
+          2,
+          4,
+          2,
+          false
+        ],
+        [
+          "sell_lvl",
+          70,
+          80,
+          10,
+          false
+        ]
+      ],
+      "buy": 0.0,
+      "sell": 0.0,
+      "threads_per_block": 128,
+      "arrays": {
+        "entry_sum": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "6078ae66029d60ab20d93f42063a941f8c9ca27c8852330fa6b33cccf0edf65a"
+        },
+        "entry_sumsq": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "b803e529bdf9931585219ac2ccc683e311912e7a4952688e1fc7b04e87ed3f3d"
+        },
+        "exit_sum": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "a440f4605201f2f136891826f1fce613d240641e8a36c130d1807910d3beb9e2"
+        },
+        "exit_sumsq": {
+          "shape": [
+            4
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "62fa5f5c079499543709b4e28a1ab8603efb64face4f251d5176e2805652ab91"
+        }
+      }
+    },
+    {
+      "name": "comparison",
+      "bars": 1024,
+      "pair_count": 16777216,
+      "data_sha256": "e57584c2def67be06de09b52ee72463d0626f20de30d2aace06f735d823909e2",
+      "entry_dims": [
+        [
+          "p_e",
+          2,
+          65,
+          1,
+          false
+        ],
+        [
+          "buy_lvl",
+          20.0,
+          51.5,
+          0.5,
+          true
+        ]
+      ],
+      "exit_dims": [
+        [
+          "p_x",
+          2,
+          65,
+          1,
+          false
+        ],
+        [
+          "sell_lvl",
+          49.0,
+          80.5,
+          0.5,
+          true
+        ]
+      ],
+      "buy": 0.0015,
+      "sell": 0.0015,
+      "threads_per_block": 128,
+      "arrays": {
+        "entry_sum": {
+          "shape": [
+            4096
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "fe4529ddae6bf486be07bafce26ffe2c0c394529ea0ceb5906d3b4e4ec0acd5f"
+        },
+        "entry_sumsq": {
+          "shape": [
+            4096
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "476faf29b1eed0b64114f4d55ab872870d51ea266cbc97e745beff6647d26e01"
+        },
+        "exit_sum": {
+          "shape": [
+            4096
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "4ec9f5f536a99225cf381a565511b31b58b396f6af0a810c305a06743548335e"
+        },
+        "exit_sumsq": {
+          "shape": [
+            4096
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "f5ee99c688a5a4fec3cc3efdfa6f2474853aee934dd6652d6eb5963c810ab454"
+        }
+      }
+    },
+    {
+      "name": "billion",
+      "bars": 1024,
+      "pair_count": 1000000000,
+      "data_sha256": "e57584c2def67be06de09b52ee72463d0626f20de30d2aace06f735d823909e2",
+      "entry_dims": [
+        [
+          "p_e",
+          2,
+          401,
+          1,
+          false
+        ],
+        [
+          "buy_lvl",
+          10,
+          59,
+          1,
+          false
+        ]
+      ],
+      "exit_dims": [
+        [
+          "p_x",
+          2,
+          1001,
+          1,
+          false
+        ],
+        [
+          "sell_lvl",
+          50,
+          99,
+          1,
+          false
+        ]
+      ],
+      "buy": 0.0015,
+      "sell": 0.0015,
+      "threads_per_block": 128,
+      "arrays": {
+        "entry_sum": {
+          "shape": [
+            20000
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "88a3fe69d130efeda5e1d51ac99230982368c74ce4ec55a0c7a34c72aab10e06"
+        },
+        "entry_sumsq": {
+          "shape": [
+            20000
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "ef9cafc4c5ed4dc56261f261491dd872aff0f1d68ef6a145132f1d83c09ea4fe"
+        },
+        "exit_sum": {
+          "shape": [
+            50000
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "492d4bccfd3f5d909a6fe6c8b41375a83321b865d4e91ee318893a5204d64114"
+        },
+        "exit_sumsq": {
+          "shape": [
+            50000
+          ],
+          "dtype": "float64",
+          "byte_identical": true,
+          "max_absolute_difference": 0.0,
+          "sha256": "10a22ec01cf8d5c80bd609c45321d4a08218409e3fb8271d78ea4397c4853dcb"
+        }
+      }
+    }
+  ],
+  "scope": "Numerical parity, not a speed benchmark. Old API results independently saved; candidate artifacts checked against returned arrays. Ranked output was intentionally removed.",
+  "cleanup": "deleted; absence confirmed through RunPod API",
+  "active_pods_after_validation": 0,
+  "candidate_source_commit": "99f0a88f27a375c389794893f9d6e4c334baf5b6",
+  "tested_wheel_sha256": {
+    "0.5.0": "682fa9dc682c808009edacc3f5fb6c82bac51a4cde62feb60afb8e5108d52eb5",
+    "0.6.0": "90e2a1646f49d885aba8a50d7de5ffc78f86d6618e4f21970053546a9ac3ebc8"
+  }
+}
