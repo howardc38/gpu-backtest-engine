@@ -120,3 +120,21 @@ The RunPod route now includes the full CPU sweep. It can take several minutes,
 rents one paid GPU pod, downloads results, and deletes its pod. Hardware, host
 load, thread count, strategy, grid shape, bar count, and cold-start overhead affect
 whether GPU use is worthwhile. No universal speedup or trading-return claim is made.
+
+
+## v0.6 raw-output validation
+
+On 2026-10-05, one RTX 4090 RunPod ran the released v0.5 wheel and reviewed v0.6
+wheel against the same inputs, dimensions, fees and block size. Every float64 array
+matched byte-for-byte across four workloads: tiny RSI with/without fees, 16,777,216
+pairs, and 1,000,000,000 pairs (both large grids used 1,024 bars). The entire CUDA
+kernel file was identical. Candidate NPZ values matched API returns, ordered
+parameter manifests and file hashes were checked, and default RunPod bundle output
+matched the clean wheel. Five physical-GPU tests passed, including independent
+single-combination profit, commission and loss anchors.
+
+[Validation evidence](../benchmarks/results/rtx4090_raw_output_parity_20261005.json)
+records grids, data/array/kernel hashes, versions, hardware and zero differences.
+This validates numerical parity, not a new speedup claim. The result files are
+intentionally NPZ/schema-2 rather than ranked CSV/schema-1. Download completed,
+the owned pod was deleted, and the API confirmed zero active pods.

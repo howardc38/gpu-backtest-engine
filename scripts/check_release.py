@@ -13,6 +13,7 @@ ALLOWED = {
     "LICENSE",
     "MANIFEST.in",
     "README.md",
+    "benchmarks/results/rtx4090_raw_output_parity_20261005.json",
     "benchmarks/results/rtx4090_rsi_20261003.json",
     "benchmarks/results/rtx4090_rsi_matched_billion_20261003.json",
     "benchmarks/results/runpod_validation_20261003.md",

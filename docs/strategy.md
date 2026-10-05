@@ -119,3 +119,7 @@ reduction checks, array dtypes/shapes and the NPZ SHA-256. Decode index `i` with
 Output contains no scoring, ranking, probabilities or intervals. `top_n` and date
 split settings are no longer accepted. Read NPZ with `numpy.load(..., allow_pickle=False)`
 and apply your own downstream analysis.
+
+The manifest marks completed output. A failed publication invalidates that marker;
+ignore an NPZ without its matching manifest. Check the recorded SHA-256 before
+consuming a persisted result pair.

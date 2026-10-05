@@ -97,6 +97,11 @@ common-parameter analysis, date-split pipelines and charts. The `top_n` option a
 old ranked CSV/schema-1 artifacts are removed; numerical return arrays remain the
 same. Old config keys are rejected rather than silently ignored.
 
+[RTX 4090 validation](benchmarks/results/rtx4090_raw_output_parity_20261005.json):
+v0.5/v0.6 returned arrays matched byte-for-byte on small, 16,777,216-pair and
+1,000,000,000-pair grids. Clean-wheel results matched the default RunPod bundle,
+all five physical-GPU tests passed, and owned-pod deletion was confirmed.
+
 ## RunPod and validation tools
 
 | Command | Purpose |
